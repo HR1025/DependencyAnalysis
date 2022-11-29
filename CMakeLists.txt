@@ -9,7 +9,10 @@ add_subdirectory(SubMoudule/poco)
 set(SRCS)
 set(INCS)
 list(APPEND INCS ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-list(APPEND SRCS ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+list(APPEND SRCS 
+    ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ObjdumpHelper.cpp
+)
 
 # generate Executable
 add_executable(DependencyAnalysis ${SRCS})

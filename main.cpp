@@ -1,10 +1,13 @@
 #include <iostream>
 #include <string>
 #include <memory>
+
 #include <Poco/Util/IniFileConfiguration.h>
 #include <Poco/JSON/Parser.h>
 #include <Poco/JSON/Object.h>
 #include <Poco/JSON/Array.h>
+
+#include "ObjdumpHelper.h"
 
 struct Config
 {
@@ -61,6 +64,8 @@ int main(int argc, char** argv)
     std::cout << "-- objdump : " << config.objdump << std::endl;
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
+    ObjdumpHelper objdumpHelper(config.objdump);
+    objdumpHelper.Dump("/usr/bin/peek");
 
     return 0;
 }
