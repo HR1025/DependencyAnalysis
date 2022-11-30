@@ -3,6 +3,9 @@
 #include <functional>
 #include <vector>
 
+/**
+ * @brief 简易的 objdump helper
+ */
 class ObjdumpHelper
 {
 public:

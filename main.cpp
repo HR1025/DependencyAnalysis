@@ -65,6 +65,13 @@ int main(int argc, char** argv)
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
     ObjdumpHelper objdumpHelper(config.objdump);
+    objdumpHelper.SetOnDependencies([](const std::vector<std::string>& dependencies) -> void
+    {
+        for (const auto& dependency : dependencies)
+        {
+            std::cout << "\t" << dependency << std::endl;
+        }
+    });
     objdumpHelper.Dump("/usr/bin/peek");
 
     return 0;
