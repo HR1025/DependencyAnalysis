@@ -8,6 +8,7 @@
 #include <Poco/JSON/Array.h>
 
 #include "ObjdumpHelper.h"
+#include "FileSearch.h"
 
 struct Config
 {
@@ -64,12 +65,14 @@ int main(int argc, char** argv)
     std::cout << "-- objdump : " << config.objdump << std::endl;
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
+    FileSearch fileSearch(config.searchPaths);
+
     ObjdumpHelper objdumpHelper(config.objdump);
-    objdumpHelper.SetOnDependencies([](const std::vector<std::string>& dependencies) -> void
+    objdumpHelper.SetOnDependencies([&fileSearch](const std::vector<std::string>& dependencies) -> void
     {
         for (const auto& dependency : dependencies)
         {
-            std::cout << "\t" << dependency << std::endl;
+            std::cout << "\t" << dependency << " : " << fileSearch.Search(dependency) << std::endl;
         }
     });
     objdumpHelper.Dump("/usr/bin/peek");
