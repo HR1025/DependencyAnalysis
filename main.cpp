@@ -76,24 +76,33 @@ int main(int argc, char** argv)
     std::cout << "-- objdump : " << config.objdump << std::endl;
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
-    ObjdumpHelper objdumpHelper(config.objdump);
     std::map<std::string /* name */, std::shared_ptr<DependencyCache>> caches;
     FileSearch fileSearch(config.searchPaths);
-    
-    caches["peek"] = std::make_shared<DependencyCache>("peek");
-    objdumpHelper.SetOnDependencies([&fileSearch, &caches](const std::vector<std::string>& dependencies) -> void
+
+    std::function<void(const std::string& name)> recursionHelper = [&recursionHelper, &caches, &fileSearch, &config](const std::string& name) -> void
     {
-        for (const auto& dependency : dependencies)
+        ObjdumpHelper objdumpHelper(config.objdump);
+        caches[name] = std::make_shared<DependencyCache>(name);
+        objdumpHelper.SetOnDependencies([&recursionHelper ,&fileSearch, &caches, &name](const std::vector<std::string>& dependencies) -> void
         {
-            DependencyCache::Dependency info;
-            info.name = dependency;
-            info.filePath = fileSearch.Search(dependency);
-            caches["peek"]->AddDependency(std::move(info));
-        }
-    });
-    objdumpHelper.Dump("/usr/bin/peek");
-    std::cout << "-- program is: " << "peek" << std::endl;
-    auto dependencies = caches["peek"]->GetDependencies();
+            for (const auto& dependency : dependencies)
+            {
+                DependencyCache::Dependency info;
+                info.name = dependency;
+                info.filePath = fileSearch.Search(dependency);
+                auto _filePath = info.filePath;
+                caches[name]->AddDependency(std::move(info));
+                if (caches.find(dependency) == caches.end())
+                {
+                    recursionHelper(_filePath);
+                }
+            }
+        });
+        objdumpHelper.Dump(name);
+    };
+    recursionHelper(config.bin);
+    std::cout << "-- program is: " << config.bin << std::endl;
+    auto dependencies = caches[config.bin]->GetDependencies();
     for(const auto& dependency : dependencies)
     {
         std::cout << "\t" << "-- name is " << dependency.name <<  ", file path is " << dependency.filePath << std::endl;
