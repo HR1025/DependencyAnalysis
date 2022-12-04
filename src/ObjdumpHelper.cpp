@@ -39,7 +39,7 @@ void ObjdumpHelper::Dump(std::string executable)
      */
     auto getDependency = [](const std::string& line) -> std::string
     {
-        Poco::RegularExpression re("lib.*([0-9]|o)");
+        Poco::RegularExpression re("(lib|ld).*([0-9]|o)");
         std::vector<std::string> splits; // splits only one size in fact
         re.split(line, 0, splits);
         for (const auto& split : splits)
