@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <memory>
+#include <map>
 
 #include <Poco/Util/IniFileConfiguration.h>
 #include <Poco/JSON/Parser.h>
@@ -9,7 +10,12 @@
 
 #include "ObjdumpHelper.h"
 #include "FileSearch.h"
+#include "DependencyCache.h"
 
+/**
+ * @brief ini 配置
+ * @sa    DependencyAnalysis.ini
+ */
 struct Config
 {
     std::string               bin;
@@ -19,6 +25,10 @@ struct Config
     std::string               objdump;
 };
 
+/**
+ * @brief 加载并解析 DependencyAnalysis.ini
+ * 
+ */
 static void LoadConifgIni(const std::string& configPath, Config& config)
 {
     Poco::AutoPtr<Poco::Util::IniFileConfiguration> pConf = new Poco::Util::IniFileConfiguration(configPath);
@@ -52,6 +62,7 @@ int main(int argc, char** argv)
     }
 
     Config  config;
+
     LoadConifgIni(std::string(argv[1]), config);
     std::cout << std::endl << "******** config(begin) ********" << std::endl;
     std::cout << "-- bin : " << config.bin << std::endl;
@@ -65,17 +76,29 @@ int main(int argc, char** argv)
     std::cout << "-- objdump : " << config.objdump << std::endl;
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
-    FileSearch fileSearch(config.searchPaths);
-
     ObjdumpHelper objdumpHelper(config.objdump);
-    objdumpHelper.SetOnDependencies([&fileSearch](const std::vector<std::string>& dependencies) -> void
+    std::map<std::string /* name */, std::shared_ptr<DependencyCache>> caches;
+    FileSearch fileSearch(config.searchPaths);
+    
+    caches["peek"] = std::make_shared<DependencyCache>("peek");
+    objdumpHelper.SetOnDependencies([&fileSearch, &caches](const std::vector<std::string>& dependencies) -> void
     {
         for (const auto& dependency : dependencies)
         {
-            std::cout << "\t" << dependency << " : " << fileSearch.Search(dependency) << std::endl;
+            DependencyCache::Dependency info;
+            info.name = dependency;
+            info.filePath = fileSearch.Search(dependency);
+            caches["peek"]->AddDependency(std::move(info));
         }
     });
     objdumpHelper.Dump("/usr/bin/peek");
+    std::cout << "-- program is: " << "peek" << std::endl;
+    auto dependencies = caches["peek"]->GetDependencies();
+    for(const auto& dependency : dependencies)
+    {
+        std::cout << "\t" << "-- name is " << dependency.name <<  ", file path is " << dependency.filePath << std::endl;
+    }
+    std::cout << std::endl;
 
     return 0;
 }

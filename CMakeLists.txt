@@ -13,6 +13,7 @@ list(APPEND SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ObjdumpHelper.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSearch.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DependencyCache.cpp
 )
 
 # generate Executable
