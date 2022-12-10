@@ -11,6 +11,7 @@
 #include "ObjdumpHelper.h"
 #include "FileSearch.h"
 #include "DependencyCache.h"
+#include "DependencySerach.h"
 
 /**
  * @brief ini 配置
@@ -76,33 +77,10 @@ int main(int argc, char** argv)
     std::cout << "-- objdump : " << config.objdump << std::endl;
     std::cout << "******** config(end) ********" << std::endl << std::endl;
 
-    std::map<std::string /* name */, std::shared_ptr<DependencyCache>> caches;
-    FileSearch fileSearch(config.searchPaths);
+    DependencySerach dependencySerach(config.objdump, std::make_shared<FileSearch>(config.searchPaths));
+    dependencySerach.Search(config.bin);
+    auto dependencies = dependencySerach.GetCacheByName(config.bin)->GetDependencies();
 
-    std::function<void(const std::string& name)> recursionHelper = [&recursionHelper, &caches, &fileSearch, &config](const std::string& name) -> void
-    {
-        ObjdumpHelper objdumpHelper(config.objdump);
-        caches[name] = std::make_shared<DependencyCache>(name);
-        objdumpHelper.SetOnDependencies([&recursionHelper ,&fileSearch, &caches, &name](const std::vector<std::string>& dependencies) -> void
-        {
-            for (const auto& dependency : dependencies)
-            {
-                DependencyCache::Dependency info;
-                info.name = dependency;
-                info.filePath = fileSearch.Search(dependency);
-                auto _filePath = info.filePath;
-                caches[name]->AddDependency(std::move(info));
-                if (caches.find(dependency) == caches.end())
-                {
-                    recursionHelper(_filePath);
-                }
-            }
-        });
-        objdumpHelper.Dump(name);
-    };
-    recursionHelper(config.bin);
-    std::cout << "-- program is: " << config.bin << std::endl;
-    auto dependencies = caches[config.bin]->GetDependencies();
     for(const auto& dependency : dependencies)
     {
         std::cout << "\t" << "-- name is " << dependency.name <<  ", file path is " << dependency.filePath << std::endl;
