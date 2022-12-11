@@ -15,6 +15,7 @@ list(APPEND SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileSearch.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DependencyCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DependencySerach.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Config.cpp
 )
 
 # generate Executable
